@@ -120,11 +120,24 @@ static int pcf8563_get_datetime(struct i2c_client *client, struct rtc_time *tm)
 	tm->tm_wday = buf[PCF8563_REG_DW] & 0x07;
 	tm->tm_mon = bcd2bin(buf[PCF8563_REG_MO] & 0x1F) - 1; /* rtc mn 1-12 */
 	tm->tm_year = bcd2bin(buf[PCF8563_REG_YR]);
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+    /* Be consistent with POST - always 0=19xx, 1=20xx */
+    if(buf[PCF8563_REG_MO] & PCF8563_MO_C)
+        tm->tm_year += 100;
+    pcf8563->c_polarity = 1;
+    /* And, to handle bogus clocks, force year to 2010 if below 2010 */
+    if(tm->tm_year < 110) {
+        tm->tm_year = 110;
+        tm->tm_mon = 0;
+        tm->tm_mday = 1;
+    }
+#else
 	if (tm->tm_year < 70)
 		tm->tm_year += 100;	/* assume we are in 1970...2069 */
 	/* detect the polarity heuristically. see note above. */
 	pcf8563->c_polarity = (buf[PCF8563_REG_MO] & PCF8563_MO_C) ?
 		(tm->tm_year >= 100) : (tm->tm_year < 100);
+#endif
 
 	dev_dbg(&client->dev, "%s: tm is secs=%d, mins=%d, hours=%d, "
 		"mday=%d, mon=%d, year=%d, wday=%d\n",

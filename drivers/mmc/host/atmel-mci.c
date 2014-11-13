@@ -1328,6 +1328,13 @@ static void atmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 				         clock_min, host->bus_hz / (511 + 2));
 				clkdiv = 511;
 			}
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+        	/* clkdiv = 2 yields a clock rate of 21.875MHz which puts
+    		 * a harmonic at 437.5MHz. If we bump it to clkdiv = 3 we
+    		 * end up with a clock of 16.384MHz and the harmonics are
+    		 * at 425.984MHz and 442.368MHz */
+    		if (clkdiv == 2) clkdiv++;
+#endif
 			host->mode_reg = ATMCI_MR_CLKDIV(clkdiv >> 1)
 			                 | ATMCI_MR_CLKODD(clkdiv & 1);
 		} else {
@@ -1338,6 +1345,13 @@ static void atmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
 				         clock_min, host->bus_hz / (2 * 256));
 				clkdiv = 255;
 			}
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+        	/* clkdiv = 2 yields a clock rate of 21.875MHz which puts
+    		 * a harmonic at 437.5MHz. If we bump it to clkdiv = 3 we
+    		 * end up with a clock of 16.384MHz and the harmonics are
+    		 * at 425.984MHz and 442.368MHz */
+    		if (clkdiv == 2) clkdiv++;
+#endif
 			host->mode_reg = ATMCI_MR_CLKDIV(clkdiv);
 		}
 

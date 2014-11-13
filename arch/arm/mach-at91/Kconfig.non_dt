@@ -155,6 +155,12 @@ config MACH_AT91SAM9260EK
 	  Select this if you are using Atmel's AT91SAM9260-EK or AT91SAM9XE Evaluation Kit
 	  <http://www.atmel.com/dyn/products/tools_card.asp?tool_id=3933>
 
+config MACH_RFCTHUNDERBOLT
+	bool "RF Code M240/M250"
+	help
+	  Select this if you are using RF Code's M240 or M250 Reader Board
+	  <http://www.rfcode.com>
+
 config MACH_CAM60
 	bool "KwikByte KB9260 (CAM60) board"
 	help

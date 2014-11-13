@@ -15,6 +15,9 @@
 #include <linux/mmc/card.h>
 #include <linux/mmc/mmc.h>
 #include <linux/mmc/sdio.h>
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+#include <linux/slab.h>
+#endif
 
 #include "core.h"
 #include "sdio_ops.h"
@@ -128,6 +131,9 @@ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
 	struct sg_table sgtable;
 	unsigned int nents, left_size, i;
 	unsigned int seg_size = card->host->max_seg_size;
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+    u8 *origbuf = NULL;
+#endif
 
 	BUG_ON(!card);
 	BUG_ON(fn > 7);
@@ -174,7 +180,17 @@ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
 	} else {
 		data.sg = &sg;
 		data.sg_len = 1;
-
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+    	/* If this is a READ and the buffer address can not be used for DMA
+	     * we will need to allocate an appropriate buffer to use */
+    	if (!write && !virt_addr_valid(buf))
+    	{
+	    	origbuf = buf;
+	    	buf = kmalloc(blksz * blocks, GFP_KERNEL);
+	    	if (!buf)
+	    		return -ENOMEM;
+	    }
+#endif	
 		sg_init_one(&sg, buf, left_size);
 	}
 
@@ -184,6 +200,15 @@ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
 
 	if (nents > 1)
 		sg_free_table(&sgtable);
+
+#ifdef CONFIG_MACH_RFCTHUNDERBOLT
+	/* If we had to use a separate buffer, copy the contents */
+	if (origbuf)
+	{
+		memcpy(origbuf, buf, blksz * blocks);
+		kfree(buf);
+	}
+#endif
 
 	if (cmd.error)
 		return cmd.error;

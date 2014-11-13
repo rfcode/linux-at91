@@ -981,7 +981,11 @@ struct lbs_private *lbs_add_card(void *card, struct device *dmdev)
 		goto err_wdev;
 	}
 
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+	dev = alloc_netdev(0, "eth%d", ether_setup);
+#else
 	dev = alloc_netdev(0, "wlan%d", ether_setup);
+#endif
 	if (!dev) {
 		dev_err(dmdev, "no memory for network device instance\n");
 		goto err_adapter;

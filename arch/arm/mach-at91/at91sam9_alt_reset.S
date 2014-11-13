@@ -33,8 +33,14 @@ at91sam9_alt_restart:	ldr	r0, =at91_ramc_base		@ preload constants
 
 			.balign	32				@ align to cache line
 
+#if !defined(CONFIG_MACH_RFCTHUNDERBOLT)
 			str	r2, [r0, #AT91_SDRAMC_TR]	@ disable SDRAM access
 			str	r3, [r0, #AT91_SDRAMC_LPR]	@ power down SDRAM
+#endif
 			str	r4, [r1, #AT91_RSTC_CR]		@ reset processor
 
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+			b	at91sam9_alt_restart
+#else
 			b	.
+#endif

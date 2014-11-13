@@ -21,6 +21,18 @@
 
 
 /* Defines */
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+#include <mach/system_rev.h>
+
+#define GS_VERSION_STR			"v1.1"
+#define GS_VERSION_NUM			0x1100
+
+#define GS_LONG_NAME			"RFCode M240/M250 Reader"
+#define GS_VERSION_NAME			GS_LONG_NAME " " GS_VERSION_STR
+
+#define GS_ALT_LONG_NAME		"RFCode Serial Device"
+
+#else
 
 #define GS_VERSION_STR			"v2.4"
 #define GS_VERSION_NUM			0x2400
@@ -28,6 +40,7 @@
 #define GS_LONG_NAME			"Gadget Serial"
 #define GS_VERSION_NAME			GS_LONG_NAME " " GS_VERSION_STR
 
+#endif
 /*-------------------------------------------------------------------------*/
 USB_GADGET_COMPOSITE_OPTIONS();
 
@@ -36,10 +49,19 @@ USB_GADGET_COMPOSITE_OPTIONS();
 * DO NOT REUSE THESE IDs with a protocol-incompatible driver!!  Ever!!
 * Instead:  allocate your own, using normal USB-IF procedures.
 */
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+#define GS_VENDOR_ID			0x1C40
+#define GS_PRODUCT_ID			0x0000	/* not used */
+#define GS_CDC_PRODUCT_ID		0x05F1	/* ... as CDC-ACM */
+#define GS_CDC_OBEX_PRODUCT_ID		0x0000	/* not used */
+#define GS_ALT_VENDOR_ID		0x1C40
+#define GS_ALT_CDC_PRODUCT_ID		0x05F5	/* ... as CDC-ACM */
+#else
 #define GS_VENDOR_ID			0x0525	/* NetChip */
 #define GS_PRODUCT_ID			0xa4a6	/* Linux-USB Serial Gadget */
 #define GS_CDC_PRODUCT_ID		0xa4a7	/* ... as CDC-ACM */
 #define GS_CDC_OBEX_PRODUCT_ID		0xa4a9	/* ... as CDC-OBEX */
+#endif
 
 /* string IDs are assigned dynamically */
 
@@ -47,7 +69,12 @@ USB_GADGET_COMPOSITE_OPTIONS();
 
 static struct usb_string strings_dev[] = {
 	[USB_GADGET_MANUFACTURER_IDX].s = "",
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+	/* I don't want extra version details in the string */
+	[USB_GADGET_PRODUCT_IDX].s = GS_LONG_NAME,
+#else
 	[USB_GADGET_PRODUCT_IDX].s = GS_VERSION_NAME,
+#endif
 	[USB_GADGET_SERIAL_IDX].s = "",
 	[STRING_DESCRIPTION_IDX].s = NULL /* updated; f(use_acm) */,
 	{  } /* end of list */
@@ -131,6 +158,22 @@ static int serial_register_ports(struct usb_composite_dev *cdev,
 {
 	int i;
 	int ret;
+
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+	/* If this is not an M250, use our generic serial device ID's	*/
+	if (system_rev != 0)
+	{
+		device_desc.idVendor = cpu_to_le16(GS_ALT_VENDOR_ID);
+		device_desc.idProduct = cpu_to_le16(GS_ALT_CDC_PRODUCT_ID);
+		strings_dev[USB_GADGET_SERIAL_IDX].s = GS_ALT_LONG_NAME;
+		
+		if (system_rev == 1)
+		{
+			/* M240 (Econobox) is bus powered		*/
+			serial_config_driver.bmAttributes &= ~USB_CONFIG_ATT_SELFPOWER;
+		}
+	}
+#endif
 
 	ret = usb_add_config_only(cdev, c);
 	if (ret)
