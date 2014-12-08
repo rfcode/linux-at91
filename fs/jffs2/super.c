@@ -231,7 +231,7 @@ static int jffs2_parse_options(struct jffs2_sb_info *c, char *data)
 		default:
 			pr_err("Error: unrecognized mount option '%s' or missing value\n",
 			       p);
-			return -EINVAL;
+			break; //RFCODE return -EINVAL;
 		}
 	}
 

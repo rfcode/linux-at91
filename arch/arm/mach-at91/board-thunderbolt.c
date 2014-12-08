@@ -41,6 +41,7 @@
 #include <asm/setup.h>
 #include <asm/mach-types.h>
 #include <asm/irq.h>
+#include <asm/system_info.h>
 
 #include <asm/mach/arch.h>
 #include <asm/mach/map.h>
@@ -111,7 +112,7 @@ static struct at91_udc_data __initdata thunderbolt_udc_data = {
  * MACB Ethernet device
  */
 static struct macb_platform_data __initdata thunderbolt_macb_data = {
-	.phy_irq_pin	= ETH_PHY_IRQ,
+	//.phy_irq_pin	= ETH_PHY_IRQ,
 	//.is_rmii	= 1,
 };
 
@@ -432,5 +433,6 @@ MACHINE_START(RFCTHUNDERBOLT, "RF Code Thunderbolt")
 	.init_early	= thunderbolt_init_early,
 	.init_irq	= at91_init_irq_default,
 	.init_machine	= thunderbolt_board_init,
+    .handle_irq = at91_aic_handle_irq,
 MACHINE_END
 

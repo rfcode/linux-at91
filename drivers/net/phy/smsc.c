@@ -67,7 +67,6 @@ static int smsc_phy_config_init(struct phy_device *phydev)
 		} while (rc & BMCR_RESET);
 	}
 
-#if !defined(CONFIG_MACH_RFCTHUNDERBOLT)
 	rc = phy_read(phydev, MII_LAN83C185_CTRL_STATUS);
 	if (rc < 0)
 		return rc;
@@ -77,7 +76,6 @@ static int smsc_phy_config_init(struct phy_device *phydev)
 		       rc | MII_LAN83C185_EDPWRDOWN);
 	if (rc < 0)
 		return rc;
-#endif
 
 	return smsc_phy_ack_interrupt (phydev);
 }
@@ -230,7 +228,7 @@ static struct phy_driver smsc_phy_driver[] = {
 
 	/* basic functions */
 	.config_aneg	= genphy_config_aneg,
-	.read_status	= lan87xx_read_status,
+    .read_status	= lan87xx_read_status,
 	.config_init	= smsc_phy_config_init,
 
 	/* IRQ related */

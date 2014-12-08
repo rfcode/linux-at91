@@ -1381,7 +1381,7 @@ static void macb_init_hw(struct macb *bp)
 
 	config = macb_mdc_clk_div(bp);
 #if defined(CONFIG_MACH_RFCTHUNDERBOLT)
-    //config |= macb_readl(bp, NCFGR) & (MACB_BF(FD, -1L) | MACB_BF(SPD, -1L));   //TODO - not sure if we need this
+    config |= macb_readl(bp, NCFGR) & (MACB_BF(FD, -1L) | MACB_BF(SPD, -1L));   //TODO - not sure if we need this
 #endif
 	config |= MACB_BF(RBOF, NET_IP_ALIGN);	/* Make eth data aligned */
 	config |= MACB_BIT(PAE);		/* PAuse Enable */

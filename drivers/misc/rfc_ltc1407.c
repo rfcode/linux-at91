@@ -33,7 +33,8 @@
 #include <linux/slab.h>
 #include <linux/atmel-ssc.h>
 #include <mach/hardware.h>
-#include <mach/gpio.h>
+//#include <mach/gpio.h>
+#include <asm/system_info.h>
 #include <sound/soc.h>	// needed for atmel_ssc_dai.h
 #include "../../sound/soc/atmel/atmel_ssc_dai.h"
 #include "rfc_ltc1407.h"
