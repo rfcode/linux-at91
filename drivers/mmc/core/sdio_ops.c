@@ -205,7 +205,7 @@ int mmc_io_rw_extended(struct mmc_card *card, int write, unsigned fn,
 	/* If we had to use a separate buffer, copy the contents */
 	if (origbuf)
 	{
-		memcpy(origbuf, buf, blksz * blocks);
+    	memcpy(origbuf, buf, blksz * blocks);
 		kfree(buf);
 	}
 #endif

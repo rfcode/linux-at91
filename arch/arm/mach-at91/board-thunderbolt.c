@@ -246,7 +246,7 @@ static struct spi_board_info thunderbolt_spi_devices[] = {
  * MCI (SD/MMC) on Slot A, 4-wire, with det_pin and wp_pin
  */
 static struct mci_platform_data __initdata thunderbolt_mmc_data = {
-	.slot[1] = {
+	.slot[0] = {
 		.bus_width	= 4,            /* Supports 4-wire */
 		.detect_pin	= SD_NCD,		/* Card Detect pin */
     	.wp_pin		= SD_NWP,		/* Write Protect pin */

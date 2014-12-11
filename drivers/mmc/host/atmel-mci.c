@@ -1333,7 +1333,10 @@ static void atmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
     		 * a harmonic at 437.5MHz. If we bump it to clkdiv = 3 we
     		 * end up with a clock of 16.384MHz and the harmonics are
     		 * at 425.984MHz and 442.368MHz */
-    		if (clkdiv == 2) clkdiv++;
+    		if (clkdiv == 2) {
+                clkdiv++;
+                printk("atmel-mci: bump1 clkdiv=%d\n", clkdiv);
+            }
 #endif
 			host->mode_reg = ATMCI_MR_CLKDIV(clkdiv >> 1)
 			                 | ATMCI_MR_CLKODD(clkdiv & 1);
@@ -1350,7 +1353,10 @@ static void atmci_set_ios(struct mmc_host *mmc, struct mmc_ios *ios)
     		 * a harmonic at 437.5MHz. If we bump it to clkdiv = 3 we
     		 * end up with a clock of 16.384MHz and the harmonics are
     		 * at 425.984MHz and 442.368MHz */
-    		if (clkdiv == 2) clkdiv++;
+    		if (clkdiv == 2) {
+                clkdiv++;
+                printk("atmel-mci: bump2 clkdiv=%d\n", clkdiv);
+            }
 #endif
 			host->mode_reg = ATMCI_MR_CLKDIV(clkdiv);
 		}
