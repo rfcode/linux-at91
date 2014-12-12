@@ -1004,7 +1004,11 @@ struct lbs_private *lbs_add_card(void *card, struct device *dmdev)
 
 	priv->card = card;
 
+#if defined(CONFIG_MACH_RFCTHUNDERBOLT)
+	strcpy(dev->name, "eth%d");
+#else
 	strcpy(dev->name, "wlan%d");
+#endif
 
 	lbs_deb_thread("Starting main thread...\n");
 	init_waitqueue_head(&priv->waitq);
