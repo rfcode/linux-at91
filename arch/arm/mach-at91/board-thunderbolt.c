@@ -98,6 +98,8 @@ static void __init thunderbolt_init_early(void)
 static struct at91_usbh_data __initdata thunderbolt_usbh_data = {
 	.ports		= 1,
 	.vbus_pin	= { USBH_PWR_EN },
+    .vbus_pin_active_low = { 1 },
+    .overcurrent_pin = { -EINVAL },
 };
 
 /*
@@ -422,17 +424,11 @@ static void __init thunderbolt_board_init(void)
 
 MACHINE_START(RFCTHUNDERBOLT, "RF Code Thunderbolt")
 	/* Maintainer: RF Code */
-//	.phys_io	= AT91_BASE_SYS,
-//	.io_pg_offst	= (AT91_VA_BASE_SYS >> 18) & 0xfffc,
-	//.boot_params	= AT91_SDRAM_BASE + 0x100,
 	.init_time	= at91sam926x_pit_init,
-	//.timer		= &at91sam926x_timer,
-	//.map_io		= thunderbolt_map_io,
 	.map_io		= at91_map_io,
-	//.init_irq	= thunderbolt_init_irq,
+    .handle_irq = at91_aic_handle_irq,
 	.init_early	= thunderbolt_init_early,
 	.init_irq	= at91_init_irq_default,
 	.init_machine	= thunderbolt_board_init,
-    .handle_irq = at91_aic_handle_irq,
 MACHINE_END
 
