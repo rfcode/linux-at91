@@ -106,6 +106,7 @@ static const struct usb_device_id btusb_table[] = {
 	{ USB_DEVICE(0x0b05, 0x17b5) },
 	{ USB_DEVICE(0x0b05, 0x17cb) },
 	{ USB_DEVICE(0x413c, 0x8197) },
+        { USB_DEVICE(0x0a5c, 0x21e8) },
 
 	/* Foxconn - Hon Hai */
 	{ USB_VENDOR_AND_INTERFACE_INFO(0x0489, 0xff, 0x01, 0x01) },
@@ -1389,44 +1390,62 @@ static int btusb_probe(struct usb_interface *intf,
 	struct hci_dev *hdev;
 	int i, err;
 
-	BT_DBG("intf %p id %p", intf, id);
+	BT_INFO("btusb_probe()\n");	
+BT_DBG("intf %p id %p", intf, id);
 
 	/* interface numbers are hardcoded in the spec */
-	if (intf->cur_altsetting->desc.bInterfaceNumber != 0)
+	if (intf->cur_altsetting->desc.bInterfaceNumber != 0) {
+		BT_INFO("btusb_probe() - bInterfaceNumber\n");
 		return -ENODEV;
+	}
 
+	BT_INFO("btusb_probe() - before id->driver_info\n");
 	if (!id->driver_info) {
 		const struct usb_device_id *match;
+                BT_INFO("btusb_probe() - before usb_match_id()\n");
 		match = usb_match_id(intf, blacklist_table);
 		if (match)
 			id = match;
 	}
+	BT_INFO("btusb_probe() - driver_info=%x\n", id->driver_info);
 
-	if (id->driver_info == BTUSB_IGNORE)
+	if (id->driver_info == BTUSB_IGNORE) {
+		BT_INFO("btusb_probe() - BTUSB_IGNORE\n");
 		return -ENODEV;
+	}
 
-	if (ignore_dga && id->driver_info & BTUSB_DIGIANSWER)
+	if (ignore_dga && id->driver_info & BTUSB_DIGIANSWER) {
+		BT_INFO("btusb_probe() - BTUSB_DIGIANSWER\n");
 		return -ENODEV;
+	}
 
-	if (ignore_csr && id->driver_info & BTUSB_CSR)
+	if (ignore_csr && id->driver_info & BTUSB_CSR) {
+		BT_INFO("btusb_probe() - BTUSB_CSR\n");
 		return -ENODEV;
+	}
 
-	if (ignore_sniffer && id->driver_info & BTUSB_SNIFFER)
+	if (ignore_sniffer && id->driver_info & BTUSB_SNIFFER) {
+		BT_INFO("btusb_probe() - BTUSB_SNIFFER\n");
 		return -ENODEV;
+        }
 
 	if (id->driver_info & BTUSB_ATH3012) {
 		struct usb_device *udev = interface_to_usbdev(intf);
 
 		/* Old firmware would otherwise let ath3k driver load
 		 * patch and sysconfig files */
-		if (le16_to_cpu(udev->descriptor.bcdDevice) <= 0x0001)
+		if (le16_to_cpu(udev->descriptor.bcdDevice) <= 0x0001) {
+			BT_INFO("btusb_probe() - Old firmware\n");
 			return -ENODEV;
+		}
 	}
 
 	data = devm_kzalloc(&intf->dev, sizeof(*data), GFP_KERNEL);
-	if (!data)
+	if (!data) {
+		BT_INFO("btusb_probe() - NOMEM\n");
 		return -ENOMEM;
-
+	}
+        BT_INFO("btusb_probe() - at endpoints loop\n");
 	for (i = 0; i < intf->cur_altsetting->desc.bNumEndpoints; i++) {
 		ep_desc = &intf->cur_altsetting->endpoint[i].desc;
 
@@ -1446,8 +1465,11 @@ static int btusb_probe(struct usb_interface *intf,
 		}
 	}
 
-	if (!data->intr_ep || !data->bulk_tx_ep || !data->bulk_rx_ep)
+	if (!data->intr_ep || !data->bulk_tx_ep || !data->bulk_rx_ep) {
+		BT_INFO("btusb_probe() - ENODEV\n");
 		return -ENODEV;
+	}
+        BT_INFO("btusb_probe() - after EP loop - all found\n");
 
 	data->cmdreq_type = USB_TYPE_CLASS;
 
@@ -1467,8 +1489,10 @@ static int btusb_probe(struct usb_interface *intf,
 	init_usb_anchor(&data->deferred);
 
 	hdev = hci_alloc_dev();
-	if (!hdev)
+	if (!hdev) {
+		BT_INFO("btusb_probe() - ENOMEM(2)\n");
 		return -ENOMEM;
+	}
 
 	hdev->bus = HCI_USB;
 	hci_set_drvdata(hdev, data);
@@ -1536,17 +1560,21 @@ static int btusb_probe(struct usb_interface *intf,
 							data->isoc, data);
 		if (err < 0) {
 			hci_free_dev(hdev);
+			BT_INFO("btusb_probe() - usb_driver_claim_interface\n");
 			return err;
 		}
 	}
-
+	BT_INFO("btusb_probe() - at hci_register_dev\n");
 	err = hci_register_dev(hdev);
 	if (err < 0) {
 		hci_free_dev(hdev);
+		BT_INFO("btusb_probe() - hci_register_dev\n");
 		return err;
 	}
-
+	BT_INFO("btusb_probe() - after hci_register_dev\n");
 	usb_set_intfdata(intf, data);
+
+	BT_INFO("btusb_probe() - return 0\n");
 
 	return 0;
 }
@@ -1556,6 +1584,7 @@ static void btusb_disconnect(struct usb_interface *intf)
 	struct btusb_data *data = usb_get_intfdata(intf);
 	struct hci_dev *hdev;
 
+	BT_INFO("btusb_disconnect()\n");
 	BT_DBG("intf %p", intf);
 
 	if (!data)
