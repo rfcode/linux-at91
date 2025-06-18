@@ -30,24 +30,41 @@
 #include <asm/unaligned.h>
 #include "pl2303.h"
 
-
 #define PL2303_QUIRK_UART_STATE_IDX0		BIT(0)
 #define PL2303_QUIRK_LEGACY			BIT(1)
+#define PL2303_QUIRK_ENDPOINT_HACK		BIT(2)
+#define PL2303_QUIRK_NO_BREAK_GETLINE		BIT(3)
 
 static const struct usb_device_id id_table[] = {
-	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID) },
+	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID),
+		.driver_info = PL2303_QUIRK_ENDPOINT_HACK },
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_RSAQ2) },
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_DCU11) },
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_RSAQ3) },
+	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_CHILITAG) },
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_PHAROS) },
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_ALDIGA) },
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_MMX) },
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_GPRS) },
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_HCR331) },
 	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_MOTOROLA) },
+	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_ZTEK) },
+	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_TB) },
+	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_GC) },
+	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_GB) },
+	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_GT) },
+	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_GL) },
+	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_GE) },
+	{ USB_DEVICE(PL2303_VENDOR_ID, PL2303_PRODUCT_ID_GS) },
 	{ USB_DEVICE(IODATA_VENDOR_ID, IODATA_PRODUCT_ID) },
 	{ USB_DEVICE(IODATA_VENDOR_ID, IODATA_PRODUCT_ID_RSAQ5) },
-	{ USB_DEVICE(ATEN_VENDOR_ID, ATEN_PRODUCT_ID) },
+	{ USB_DEVICE(ATEN_VENDOR_ID, ATEN_PRODUCT_ID),
+		.driver_info = PL2303_QUIRK_ENDPOINT_HACK },
+	{ USB_DEVICE(ATEN_VENDOR_ID, ATEN_PRODUCT_UC485),
+		.driver_info = PL2303_QUIRK_ENDPOINT_HACK },
+	{ USB_DEVICE(ATEN_VENDOR_ID, ATEN_PRODUCT_UC232B),
+		.driver_info = PL2303_QUIRK_ENDPOINT_HACK },
+	{ USB_DEVICE(ATEN_VENDOR_ID, ATEN_PRODUCT_ID2) },
 	{ USB_DEVICE(ATEN_VENDOR_ID2, ATEN_PRODUCT_ID) },
 	{ USB_DEVICE(ELCOM_VENDOR_ID, ELCOM_PRODUCT_ID) },
 	{ USB_DEVICE(ELCOM_VENDOR_ID, ELCOM_PRODUCT_ID_UCSGT) },
@@ -60,14 +77,14 @@ static const struct usb_device_id id_table[] = {
 	{ USB_DEVICE(DCU10_VENDOR_ID, DCU10_PRODUCT_ID) },
 	{ USB_DEVICE(SITECOM_VENDOR_ID, SITECOM_PRODUCT_ID) },
 	{ USB_DEVICE(ALCATEL_VENDOR_ID, ALCATEL_PRODUCT_ID) },
-	{ USB_DEVICE(SAMSUNG_VENDOR_ID, SAMSUNG_PRODUCT_ID) },
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_SX1),
 		.driver_info = PL2303_QUIRK_UART_STATE_IDX0 },
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_X65),
 		.driver_info = PL2303_QUIRK_UART_STATE_IDX0 },
 	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_X75),
 		.driver_info = PL2303_QUIRK_UART_STATE_IDX0 },
-	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_EF81) },
+	{ USB_DEVICE(SIEMENS_VENDOR_ID, SIEMENS_PRODUCT_ID_EF81),
+		.driver_info = PL2303_QUIRK_ENDPOINT_HACK },
 	{ USB_DEVICE(BENQ_VENDOR_ID, BENQ_PRODUCT_ID_S81) }, /* Benq/Siemens S81 */
 	{ USB_DEVICE(SYNTECH_VENDOR_ID, SYNTECH_PRODUCT_ID) },
 	{ USB_DEVICE(NOKIA_CA42_VENDOR_ID, NOKIA_CA42_PRODUCT_ID) },
@@ -77,21 +94,34 @@ static const struct usb_device_id id_table[] = {
 	{ USB_DEVICE(SPEEDDRAGON_VENDOR_ID, SPEEDDRAGON_PRODUCT_ID) },
 	{ USB_DEVICE(DATAPILOT_U2_VENDOR_ID, DATAPILOT_U2_PRODUCT_ID) },
 	{ USB_DEVICE(BELKIN_VENDOR_ID, BELKIN_PRODUCT_ID) },
-	{ USB_DEVICE(ALCOR_VENDOR_ID, ALCOR_PRODUCT_ID) },
+	{ USB_DEVICE(ALCOR_VENDOR_ID, ALCOR_PRODUCT_ID),
+		.driver_info = PL2303_QUIRK_ENDPOINT_HACK },
 	{ USB_DEVICE(WS002IN_VENDOR_ID, WS002IN_PRODUCT_ID) },
 	{ USB_DEVICE(COREGA_VENDOR_ID, COREGA_PRODUCT_ID) },
 	{ USB_DEVICE(YCCABLE_VENDOR_ID, YCCABLE_PRODUCT_ID) },
 	{ USB_DEVICE(SUPERIAL_VENDOR_ID, SUPERIAL_PRODUCT_ID) },
 	{ USB_DEVICE(HP_VENDOR_ID, HP_LD220_PRODUCT_ID) },
+	{ USB_DEVICE(HP_VENDOR_ID, HP_LD220TA_PRODUCT_ID) },
+	{ USB_DEVICE(HP_VENDOR_ID, HP_LD381_PRODUCT_ID) },
+	{ USB_DEVICE(HP_VENDOR_ID, HP_LD381GC_PRODUCT_ID) },
 	{ USB_DEVICE(HP_VENDOR_ID, HP_LD960_PRODUCT_ID) },
+	{ USB_DEVICE(HP_VENDOR_ID, HP_LD960TA_PRODUCT_ID) },
 	{ USB_DEVICE(HP_VENDOR_ID, HP_LCM220_PRODUCT_ID) },
 	{ USB_DEVICE(HP_VENDOR_ID, HP_LCM960_PRODUCT_ID) },
+	{ USB_DEVICE(HP_VENDOR_ID, HP_LM920_PRODUCT_ID) },
+	{ USB_DEVICE(HP_VENDOR_ID, HP_LM930_PRODUCT_ID) },
+	{ USB_DEVICE(HP_VENDOR_ID, HP_LM940_PRODUCT_ID) },
+	{ USB_DEVICE(HP_VENDOR_ID, HP_TD620_PRODUCT_ID) },
 	{ USB_DEVICE(CRESSI_VENDOR_ID, CRESSI_EDY_PRODUCT_ID) },
 	{ USB_DEVICE(ZEAGLE_VENDOR_ID, ZEAGLE_N2ITION3_PRODUCT_ID) },
 	{ USB_DEVICE(SONY_VENDOR_ID, SONY_QN3USB_PRODUCT_ID) },
 	{ USB_DEVICE(SANWA_VENDOR_ID, SANWA_PRODUCT_ID) },
 	{ USB_DEVICE(ADLINK_VENDOR_ID, ADLINK_ND6530_PRODUCT_ID) },
+	{ USB_DEVICE(ADLINK_VENDOR_ID, ADLINK_ND6530GC_PRODUCT_ID) },
 	{ USB_DEVICE(SMART_VENDOR_ID, SMART_PRODUCT_ID) },
+	{ USB_DEVICE(AT_VENDOR_ID, AT_VTKIT3_PRODUCT_ID) },
+	{ USB_DEVICE(IBM_VENDOR_ID, IBM_PRODUCT_ID) },
+	{ USB_DEVICE(MACROSILICON_VENDOR_ID, MACROSILICON_MS3020_PRODUCT_ID) },
 	{ }					/* Terminating entry */
 };
 
@@ -115,9 +145,11 @@ MODULE_DEVICE_TABLE(usb, id_table);
 
 #define VENDOR_WRITE_REQUEST_TYPE	0x40
 #define VENDOR_WRITE_REQUEST		0x01
+#define VENDOR_WRITE_NREQUEST		0x80
 
 #define VENDOR_READ_REQUEST_TYPE	0xc0
 #define VENDOR_READ_REQUEST		0x01
+#define VENDOR_READ_NREQUEST		0x81
 
 #define UART_STATE_INDEX		8
 #define UART_STATE_MSR_MASK		0x8b
@@ -131,16 +163,37 @@ MODULE_DEVICE_TABLE(usb, id_table);
 #define UART_OVERRUN_ERROR		0x40
 #define UART_CTS			0x80
 
+#define PL2303_FLOWCTRL_MASK		0xf0
+
+#define PL2303_READ_TYPE_HX_STATUS	0x8080
+
+#define PL2303_HXN_RESET_REG		0x07
+#define PL2303_HXN_RESET_UPSTREAM_PIPE	0x02
+#define PL2303_HXN_RESET_DOWNSTREAM_PIPE	0x01
+
+#define PL2303_HXN_FLOWCTRL_REG		0x0a
+#define PL2303_HXN_FLOWCTRL_MASK	0x1c
+#define PL2303_HXN_FLOWCTRL_NONE	0x1c
+#define PL2303_HXN_FLOWCTRL_RTS_CTS	0x18
+#define PL2303_HXN_FLOWCTRL_XON_XOFF	0x0c
 
 enum pl2303_type {
-	TYPE_01,	/* Type 0 and 1 (difference unknown) */
-	TYPE_HX,	/* HX version of the pl2303 chip */
+	TYPE_H,
+	TYPE_HX,
+	TYPE_TA,
+	TYPE_TB,
+	TYPE_HXD,
+	TYPE_HXN,
 	TYPE_COUNT
 };
 
 struct pl2303_type_data {
+	const char *name;
 	speed_t max_baud_rate;
 	unsigned long quirks;
+	unsigned int no_autoxonxoff:1;
+	unsigned int no_divisors:1;
+	unsigned int alt_divisors:1;
 };
 
 struct pl2303_serial_private {
@@ -157,20 +210,52 @@ struct pl2303_private {
 };
 
 static const struct pl2303_type_data pl2303_type_data[TYPE_COUNT] = {
-	[TYPE_01] = {
-		.max_baud_rate =	1228800,
-		.quirks =		PL2303_QUIRK_LEGACY,
+	[TYPE_H] = {
+		.name			= "H",
+		.max_baud_rate		= 1228800,
+		.quirks			= PL2303_QUIRK_LEGACY,
+		.no_autoxonxoff		= true,
+	},
+	[TYPE_HX] = {
+		.name			= "HX",
+		.max_baud_rate		= 6000000,
+	},
+	[TYPE_TA] = {
+		.name			= "TA",
+		.max_baud_rate		= 6000000,
+		.alt_divisors		= true,
+	},
+	[TYPE_TB] = {
+		.name			= "TB",
+		.max_baud_rate		= 12000000,
+		.alt_divisors		= true,
+	},
+	[TYPE_HXD] = {
+		.name			= "HXD",
+		.max_baud_rate		= 12000000,
+	},
+	[TYPE_HXN] = {
+		.name			= "G",
+		.max_baud_rate		= 12000000,
+		.no_divisors		= true,
 	},
 };
 
 static int pl2303_vendor_read(struct usb_serial *serial, u16 value,
 							unsigned char buf[1])
 {
+	struct pl2303_serial_private *spriv = usb_get_serial_data(serial);
 	struct device *dev = &serial->interface->dev;
+	u8 request;
 	int res;
 
+	if (spriv->type == &pl2303_type_data[TYPE_HXN])
+		request = VENDOR_READ_NREQUEST;
+	else
+		request = VENDOR_READ_REQUEST;
+
 	res = usb_control_msg(serial->dev, usb_rcvctrlpipe(serial->dev, 0),
-			VENDOR_READ_REQUEST, VENDOR_READ_REQUEST_TYPE,
+			request, VENDOR_READ_REQUEST_TYPE,
 			value, 0, buf, 1, 100);
 	if (res != 1) {
 		dev_err(dev, "%s - failed to read [%04x]: %d\n", __func__,
@@ -188,13 +273,20 @@ static int pl2303_vendor_read(struct usb_serial *serial, u16 value,
 
 static int pl2303_vendor_write(struct usb_serial *serial, u16 value, u16 index)
 {
+	struct pl2303_serial_private *spriv = usb_get_serial_data(serial);
 	struct device *dev = &serial->interface->dev;
+	u8 request;
 	int res;
 
 	dev_dbg(dev, "%s - [%04x] = %02x\n", __func__, value, index);
 
+	if (spriv->type == &pl2303_type_data[TYPE_HXN])
+		request = VENDOR_WRITE_NREQUEST;
+	else
+		request = VENDOR_WRITE_REQUEST;
+
 	res = usb_control_msg(serial->dev, usb_sndctrlpipe(serial->dev, 0),
-			VENDOR_WRITE_REQUEST, VENDOR_WRITE_REQUEST_TYPE,
+			request, VENDOR_WRITE_REQUEST_TYPE,
 			value, index, NULL, 0, 100);
 	if (res) {
 		dev_err(dev, "%s - failed to write [%04x]: %d\n", __func__,
@@ -213,54 +305,157 @@ static int pl2303_probe(struct usb_serial *serial,
 	return 0;
 }
 
+static bool pl2303_supports_hx_status(struct usb_serial *serial)
+{
+	int ret;
+	u8 buf;
+
+        ret = usb_control_msg(serial->dev, usb_rcvctrlpipe(serial->dev, 0),
+                        VENDOR_READ_REQUEST, VENDOR_READ_REQUEST_TYPE,
+                        PL2303_READ_TYPE_HX_STATUS, 0, &buf, 1, 100);
+
+	return ret == 0;
+}
+
+static int pl2303_detect_type(struct usb_serial *serial)
+{
+	struct usb_device_descriptor *desc = &serial->dev->descriptor;
+	u16 bcdDevice, bcdUSB;
+
+	/*
+	 * Legacy PL2303H, variants 0 and 1 (difference unknown).
+	 */
+	if (desc->bDeviceClass == 0x02)
+		return TYPE_H;		/* variant 0 */
+
+	if (desc->bMaxPacketSize0 != 0x40) {
+		if (desc->bDeviceClass == 0x00 || desc->bDeviceClass == 0xff)
+			return TYPE_H;	/* variant 1 */
+
+		return TYPE_H;		/* variant 0 */
+	}
+
+	bcdDevice = le16_to_cpu(desc->bcdDevice);
+	bcdUSB = le16_to_cpu(desc->bcdUSB);
+
+	switch (bcdUSB) {
+	case 0x101:
+		/* USB 1.0.1? Let's assume they meant 1.1... */
+		//fallthrough;
+	case 0x110:
+		switch (bcdDevice) {
+		case 0x300:
+			return TYPE_HX;
+		case 0x400:
+			return TYPE_HXD;
+		default:
+			return TYPE_HX;
+		}
+		break;
+	case 0x200:
+		switch (bcdDevice) {
+		case 0x100:	/* GC */
+		case 0x105:
+			return TYPE_HXN;
+		case 0x300:	/* GT / TA */
+			if (pl2303_supports_hx_status(serial))
+				return TYPE_TA;
+			//fallthrough;
+		case 0x305:
+		case 0x400:	/* GL */
+		case 0x405:
+			return TYPE_HXN;
+		case 0x500:	/* GE / TB */
+			if (pl2303_supports_hx_status(serial))
+				return TYPE_TB;
+			//fallthrough;
+		case 0x505:
+		case 0x600:	/* GS */
+		case 0x605:
+		case 0x700:	/* GR */
+		case 0x705:
+		case 0x905:	/* GT-2AB */
+		case 0x1005:	/* GC-Q20 */
+			return TYPE_HXN;
+		}
+		break;
+	}
+
+	dev_err(&serial->interface->dev,
+			"unknown device type, please report to linux-usb@vger.kernel.org\n");
+	return -ENODEV;
+}
+
+static bool pl2303_is_hxd_clone(struct usb_serial *serial)
+{
+	struct usb_device *udev = serial->dev;
+	unsigned char *buf;
+	int ret;
+
+	buf = kmalloc(7, GFP_KERNEL);
+	if (!buf)
+		return false;
+
+	ret = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
+			      GET_LINE_REQUEST, GET_LINE_REQUEST_TYPE,
+			      0, 0, buf, 7, 100);
+
+	kfree(buf);
+
+	return ret == -EPIPE;
+}
+
 static int pl2303_startup(struct usb_serial *serial)
 {
 	struct pl2303_serial_private *spriv;
-	enum pl2303_type type = TYPE_01;
+	enum pl2303_type type;
 	unsigned char *buf;
+	int ret;
+
+	ret = pl2303_detect_type(serial);
+	if (ret < 0)
+		return ret;
+
+	type = ret;
+	dev_dbg(&serial->interface->dev, "device type: %s\n", pl2303_type_data[type].name);
 
 	spriv = kzalloc(sizeof(*spriv), GFP_KERNEL);
 	if (!spriv)
 		return -ENOMEM;
 
-	buf = kmalloc(1, GFP_KERNEL);
-	if (!buf) {
-		kfree(spriv);
-		return -ENOMEM;
-	}
-
-	if (serial->dev->descriptor.bDeviceClass == 0x02)
-		type = TYPE_01;		/* type 0 */
-	else if (serial->dev->descriptor.bMaxPacketSize0 == 0x40)
-		type = TYPE_HX;
-	else if (serial->dev->descriptor.bDeviceClass == 0x00)
-		type = TYPE_01;		/* type 1 */
-	else if (serial->dev->descriptor.bDeviceClass == 0xFF)
-		type = TYPE_01;		/* type 1 */
-	dev_dbg(&serial->interface->dev, "device type: %d\n", type);
-
 	spriv->type = &pl2303_type_data[type];
 	spriv->quirks = (unsigned long)usb_get_serial_data(serial);
 	spriv->quirks |= spriv->type->quirks;
 
+	if (type == TYPE_HXD && pl2303_is_hxd_clone(serial))
+		spriv->quirks |= PL2303_QUIRK_NO_BREAK_GETLINE;
+
 	usb_set_serial_data(serial, spriv);
 
-	pl2303_vendor_read(serial, 0x8484, buf);
-	pl2303_vendor_write(serial, 0x0404, 0);
-	pl2303_vendor_read(serial, 0x8484, buf);
-	pl2303_vendor_read(serial, 0x8383, buf);
-	pl2303_vendor_read(serial, 0x8484, buf);
-	pl2303_vendor_write(serial, 0x0404, 1);
-	pl2303_vendor_read(serial, 0x8484, buf);
-	pl2303_vendor_read(serial, 0x8383, buf);
-	pl2303_vendor_write(serial, 0, 1);
-	pl2303_vendor_write(serial, 1, 0);
-	if (spriv->quirks & PL2303_QUIRK_LEGACY)
-		pl2303_vendor_write(serial, 2, 0x24);
-	else
-		pl2303_vendor_write(serial, 2, 0x44);
+	if (type != TYPE_HXN) {
+		buf = kmalloc(1, GFP_KERNEL);
+		if (!buf) {
+			kfree(spriv);
+			return -ENOMEM;
+		}
 
-	kfree(buf);
+		pl2303_vendor_read(serial, 0x8484, buf);
+		pl2303_vendor_write(serial, 0x0404, 0);
+		pl2303_vendor_read(serial, 0x8484, buf);
+		pl2303_vendor_read(serial, 0x8383, buf);
+		pl2303_vendor_read(serial, 0x8484, buf);
+		pl2303_vendor_write(serial, 0x0404, 1);
+		pl2303_vendor_read(serial, 0x8484, buf);
+		pl2303_vendor_read(serial, 0x8383, buf);
+		pl2303_vendor_write(serial, 0, 1);
+		pl2303_vendor_write(serial, 1, 0);
+		if (spriv->quirks & PL2303_QUIRK_LEGACY)
+			pl2303_vendor_write(serial, 2, 0x24);
+		else
+			pl2303_vendor_write(serial, 2, 0x44);
+
+		kfree(buf);
+	}
 
 	return 0;
 }
@@ -358,21 +553,77 @@ static speed_t pl2303_encode_baud_rate_direct(unsigned char buf[4],
 static speed_t pl2303_encode_baud_rate_divisor(unsigned char buf[4],
 								speed_t baud)
 {
-	unsigned int tmp;
+	unsigned int baseline, mantissa, exponent;
 
 	/*
 	 * Apparently the formula is:
-	 * baudrate = 12M * 32 / (2^buf[1]) / buf[0]
+	 *   baudrate = 12M * 32 / (mantissa * 4^exponent)
+	 * where
+	 *   mantissa = buf[8:0]
+	 *   exponent = buf[11:9]
 	 */
-	tmp = 12000000 * 32 / baud;
+	baseline = 12000000 * 32;
+	mantissa = baseline / baud;
+	if (mantissa == 0)
+		mantissa = 1;	/* Avoid dividing by zero if baud > 32*12M. */
+	exponent = 0;
+	while (mantissa >= 512) {
+		if (exponent < 7) {
+			mantissa >>= 2;	/* divide by 4 */
+			exponent++;
+		} else {
+			/* Exponent is maxed. Trim mantissa and leave. */
+			mantissa = 511;
+			break;
+		}
+	}
+
 	buf[3] = 0x80;
 	buf[2] = 0;
-	buf[1] = (tmp >= 256);
-	while (tmp >= 256) {
-		tmp >>= 2;
-		buf[1] <<= 1;
+	buf[1] = exponent << 1 | mantissa >> 8;
+	buf[0] = mantissa & 0xff;
+
+	/* Calculate and return the exact baud rate. */
+	baud = (baseline / mantissa) >> (exponent << 1);
+
+	return baud;
+}
+
+static speed_t pl2303_encode_baud_rate_divisor_alt(unsigned char buf[4],
+								speed_t baud)
+{
+	unsigned int baseline, mantissa, exponent;
+
+	/*
+	 * Apparently, for the TA version the formula is:
+	 *   baudrate = 12M * 32 / (mantissa * 2^exponent)
+	 * where
+	 *   mantissa = buf[10:0]
+	 *   exponent = buf[15:13 16]
+	 */
+	baseline = 12000000 * 32;
+	mantissa = baseline / baud;
+	if (mantissa == 0)
+		mantissa = 1;   /* Avoid dividing by zero if baud > 32*12M. */
+	exponent = 0;
+	while (mantissa >= 2048) {
+		if (exponent < 15) {
+			mantissa >>= 1; /* divide by 2 */
+			exponent++;
+		} else {
+			/* Exponent is maxed. Trim mantissa and leave. */
+			mantissa = 2047;
+			break;
+		}
 	}
-	buf[0] = tmp;
+
+	buf[3] = 0x80;
+	buf[2] = exponent & 0x01;
+	buf[1] = (exponent & ~0x01) << 4 | mantissa >> 8;
+	buf[0] = mantissa & 0xff;
+
+	/* Calculate and return the exact baud rate. */
+	baud = (baseline / mantissa) >> exponent;
 
 	return baud;
 }
@@ -394,16 +645,20 @@ static void pl2303_encode_baud_rate(struct tty_struct *tty,
 	if (spriv->type->max_baud_rate)
 		baud = min_t(speed_t, baud, spriv->type->max_baud_rate);
 	/*
-	 * Set baud rate to nearest supported value.
-	 *
-	 * NOTE: Baud rate 500k can only be set using divisors.
+	 * Use direct method for supported baud rates, otherwise use divisors.
+	 * Newer chip types do not support divisor encoding.
 	 */
-	baud_sup = pl2303_get_supported_baud_rate(baud);
-
-	if (baud == 500000)
-		baud = pl2303_encode_baud_rate_divisor(buf, baud);
+	if (spriv->type->no_divisors)
+		baud_sup = baud;
 	else
-		baud = pl2303_encode_baud_rate_direct(buf, baud_sup);
+		baud_sup = pl2303_get_supported_baud_rate(baud);
+
+	if (baud == baud_sup)
+		baud = pl2303_encode_baud_rate_direct(buf, baud);
+	else if (spriv->type->alt_divisors)
+		baud = pl2303_encode_baud_rate_divisor_alt(buf, baud);
+	else
+		baud = pl2303_encode_baud_rate_divisor(buf, baud);
 
 	/* Save resulting baud rate */
 	tty_encode_baud_rate(tty, baud, baud);
@@ -414,7 +669,16 @@ static int pl2303_get_line_request(struct usb_serial_port *port,
 							unsigned char buf[7])
 {
 	struct usb_device *udev = port->serial->dev;
+	struct pl2303_serial_private *spriv = usb_get_serial_data(port->serial);
 	int ret;
+
+
+	if (spriv->quirks & PL2303_QUIRK_NO_BREAK_GETLINE) {
+		struct pl2303_private *priv = usb_get_serial_port_data(port);
+
+		memcpy(buf, priv->line_settings, 7);
+		return 0;
+	}
 
 	ret = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0),
 				GET_LINE_REQUEST, GET_LINE_REQUEST_TYPE,
@@ -626,8 +890,14 @@ static int pl2303_open(struct tty_struct *tty, struct usb_serial_port *port)
 		usb_clear_halt(serial->dev, port->read_urb->pipe);
 	} else {
 		/* reset upstream data pipes */
-		pl2303_vendor_write(serial, 8, 0);
-		pl2303_vendor_write(serial, 9, 0);
+		if (spriv->type == &pl2303_type_data[TYPE_HXN]) {
+			pl2303_vendor_write(serial, PL2303_HXN_RESET_REG,
+					PL2303_HXN_RESET_UPSTREAM_PIPE |
+					PL2303_HXN_RESET_DOWNSTREAM_PIPE);
+		} else {
+			pl2303_vendor_write(serial, 8, 0);
+			pl2303_vendor_write(serial, 9, 0);
+		}	
 	}
 
 	/* Setup termios */
@@ -743,8 +1013,12 @@ static void pl2303_break_ctl(struct tty_struct *tty, int break_state)
 {
 	struct usb_serial_port *port = tty->driver_data;
 	struct usb_serial *serial = port->serial;
+	struct pl2303_serial_private *spriv = usb_get_serial_data(serial);
 	u16 state;
 	int result;
+
+	if (spriv->quirks & PL2303_QUIRK_NO_BREAK_GETLINE)
+		return;
 
 	if (break_state == 0)
 		state = BREAK_OFF;
